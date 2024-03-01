@@ -24,7 +24,7 @@ def itc_input_checker(modeltype, choice, amt1, delay1, amt2, delay2):
 
         assert (type(choice) == np.ndarray and choice.ndim == 1), f'{choice} should be a vector'
         assert (choice.size > 2), f'{choice} should have at least 3 elements'
-        assert (np.all(choice == 0 | choice == 1)), f'all elements in {choice} should be 1 or 0'
+        assert (np.all((choice == 0) | (choice == 1))), f'all elements in {choice} should be 1 or 0'
 
         assert (type(amt1) == np.ndarray and amt1.ndim == 1), f'{amt1} should be a vector'
         assert (amt1.size > 2), f'{amt1} should have at least 3 elements'
