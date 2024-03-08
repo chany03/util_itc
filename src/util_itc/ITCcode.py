@@ -1,7 +1,7 @@
 import numpy as np
 import math
 from scipy.optimize import minimize
-import matplotlib.pyplot as plt
+
 
 class util_itc:
 
@@ -15,6 +15,7 @@ class util_itc:
         self.delay1 = delay1
         self.amt2 = amt2
         self.delay2 = delay2
+        
 
 def itc_input_checker(modeltype, choice, amt1, delay1, amt2, delay2):
 
