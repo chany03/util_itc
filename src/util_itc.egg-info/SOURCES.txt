@@ -3,6 +3,7 @@ README.md
 pyproject.toml
 src/util_itc/ITCcode.py
 src/util_itc/__init__.py
+src/util_itc/test.py
 src/util_itc.egg-info/PKG-INFO
 src/util_itc.egg-info/SOURCES.txt
 src/util_itc.egg-info/dependency_links.txt
