@@ -107,6 +107,11 @@ class util_itc:
             util2 = self.__quasi_hyperbolic(self.amt2, k, self.delay2, b)
 
         dv = util2 - util1
+        if np.all(dv < 0) or np.all(dv > 0):
+            if len(params) == 1:
+                warnings.warn(f'All predicted choices one-sided with parameter: {params[0]}')
+            else:
+                warnings.warn(f'All predicted choices one-sided with parameters: {params[0]}, {params[1]}')
         dv_choice = -np.where(self.choice == 0, dv, -dv)
         logp = [-np.log(1 + np.exp(dv_choice[i])) if dv_choice[i] < 709 else -dv_choice[i] for i in range(len(dv_choice))]
         return -np.average(logp)
@@ -183,7 +188,7 @@ class util_itc:
 
         assert (type(delay1) == np.ndarray and delay1.ndim == 1), f'{delay1} should be a vector'
         assert (delay1.size > 2), f'{delay1} should have at least 3 elements'
-        assert (np.all(delay1 > 0)), f'{delay1} should be positive numbers only'
+        assert (np.all(delay1 >= 0)), f'{delay1} should be positive numbers only'
 
         if not isinstance(amt2, np.ndarray):
             try:
@@ -213,7 +218,7 @@ class util_itc:
 
         assert (type(delay2) == np.ndarray and delay2.ndim == 1), f'{delay2} should be a vector'
         assert (delay2.size > 2), f'{delay2} should have at least 3 elements'
-        assert (np.all(delay2 > 0)), f'{delay2} should be positive numbers only'
+        assert (np.all(delay2 >= 0)), f'{delay2} should be positive numbers only'
 
         assert (choice.size == amt1.size == delay1.size == amt2.size == delay2.size), 'all vectors should have equal size'
 
