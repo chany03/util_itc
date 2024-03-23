@@ -22,6 +22,7 @@ class util_itc:
     def fit(self):
 
         estimated_k = []
+        estimated_it = []
         average_likelihoods = []
 
         best_params = []
@@ -36,17 +37,20 @@ class util_itc:
             initial_k = simple_hyperbolic.fit()[0]
 
             for i in np.arange(0, 1, 0.3):
-                init = np.array([initial_k, i])
+                init = np.array([initial_k, 1, i])
                 result = minimize(self.fun, init, method='SLSQP', bounds=bounds)
                 estimated_k.append(result.x[0])
-                estimated_s.append(result.x[1])
+                estimated_it.append(result.x[1])
+                estimated_s.append(result.x[2])
                 average_likelihoods.append(-result.fun)
 
             best_index = average_likelihoods.index(max(average_likelihoods))
             best_k = estimated_k[best_index]
+            best_it = estimated_it[best_index]
             best_s = estimated_s[best_index]
 
             best_params.append(best_k)
+            best_params.append(best_it)
             best_params.append(best_s)
 
         elif self.modeltype == 'Q':
@@ -55,31 +59,37 @@ class util_itc:
 
             for i in np.arange(0, 1, 0.2):
                 for j in np.arange(0, 1, 0.3):
-                    init = np.array([i, j])
+                    init = np.array([i, 1, j])
                     result = minimize(self.fun, init, method='SLSQP', bounds=bounds)
                     estimated_k.append(result.x[0])
-                    estimated_b.append(result.x[1])
+                    estimated_it.append(result.x[1])
+                    estimated_b.append(result.x[2])
                     average_likelihoods.append(-result.fun)
 
             best_index = average_likelihoods.index(max(average_likelihoods))
             best_k = estimated_k[best_index]
+            best_it = estimated_it[best_index]
             best_b = estimated_b[best_index]
 
             best_params.append(best_k)
+            best_params.append(best_it)
             best_params.append(best_b)
 
         else: 
 
             for i in np.arange(0, 1, 0.2):
-                init = np.array(i)
+                init = np.array([i, 1])
                 result = minimize(self.fun, init, method='SLSQP', bounds=bounds)
                 estimated_k.append(result.x[0])
+                estimated_it.append(result.x[1])
                 average_likelihoods.append(-result.fun)
 
             best_index = average_likelihoods.index(max(average_likelihoods))
             best_k = estimated_k[best_index]
+            best_it = estimated_it[best_index]
 
             best_params.append(best_k)
+            best_params.append(best_it)
 
         return best_params
 
@@ -87,6 +97,7 @@ class util_itc:
     def fun(self, params):
 
         k = params[0]
+        inverse_temp = params[1]
 
         if self.modeltype == 'E':
             util1 = self.__exponential(self.amt1, k, self.delay1)
@@ -97,23 +108,24 @@ class util_itc:
             util2 = self.__hyperbolic(self.amt2, k, self.delay2)
         
         if self.modeltype == 'GH':
-            s = params[1]
+            s = params[2]
             util1 = self.__generalized_hyperbolic(self.amt1, k, self.delay1, s)
             util2 = self.__generalized_hyperbolic(self.amt2, k, self.delay2, s)
 
         if self.modeltype == 'Q':
-            b = params[1]
+            b = params[2]
             util1 = self.__quasi_hyperbolic(self.amt1, k, self.delay1, b)
             util2 = self.__quasi_hyperbolic(self.amt2, k, self.delay2, b)
 
         dv = util2 - util1
         if np.all(dv < 0) or np.all(dv > 0):
-            if len(params) == 1:
-                warnings.warn(f'All predicted choices one-sided with parameter: {params[0]}')
+            if len(params) == 2:
+                warnings.warn(f'All predicted choices one-sided with parameter: {params[0]}, {params[1]}')
             else:
-                warnings.warn(f'All predicted choices one-sided with parameters: {params[0]}, {params[1]}')
+                warnings.warn(f'All predicted choices one-sided with parameters: {params[0]}, {params[1]}, {params[2]}')
         dv_choice = -np.where(self.choice == 0, dv, -dv)
-        logp = [-np.log(1 + np.exp(dv_choice[i])) if dv_choice[i] < 709 else -dv_choice[i] for i in range(len(dv_choice))]
+        reg = np.divide(dv_choice, inverse_temp)
+        logp = np.array([-np.log(1 + np.exp(reg[i])) if reg[i] < 709 else -reg[i] for i in range(len(reg))])
         return -np.average(logp)
 
 
