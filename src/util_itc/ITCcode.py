@@ -27,21 +27,26 @@ class util_itc:
 
         best_params = []
 
-        bounds = Bounds(0, 2)
-
         if self.modeltype == 'GH':
+
+            lower_k, upper_k = self.__bounds_h(self.amt1, self.delay1, self.amt2, self.delay2)
+            lower_k_log = math.log(lower_k)
+            upper_k_log = math.log(upper_k)
+
+            bounds = Bounds([lower_k_log, -1, -1], [upper_k_log, 2, 2])
 
             estimated_s = []
 
             simple_hyperbolic = util_itc('H', self.choice, self.amt1, self.delay1, self.amt2, self.delay2)
             initial_k = simple_hyperbolic.fit()[0]
+            initial_it = simple_hyperbolic.fit()[1]
 
             for i in np.arange(0, 1, 0.3):
-                init = np.array([initial_k, 1, i])
+                init = np.array([initial_k, initial_it, i])
                 result = minimize(self.fun, init, method='SLSQP', bounds=bounds)
-                estimated_k.append(result.x[0])
-                estimated_it.append(result.x[1])
-                estimated_s.append(result.x[2])
+                estimated_k.append(math.exp(result.x[0]))
+                estimated_it.append(math.exp(result.x[1]))
+                estimated_s.append(math.exp(result.x[2]))
                 average_likelihoods.append(-result.fun)
 
             best_index = average_likelihoods.index(max(average_likelihoods))
@@ -55,14 +60,20 @@ class util_itc:
 
         elif self.modeltype == 'Q':
 
+            lower_k, upper_k = self.__bounds_e(self.amt1, self.delay1, self.amt2, self.delay2)
+            lower_k_log = math.log(lower_k)
+            upper_k_log = math.log(upper_k)
+
+            bounds = Bounds([lower_k_log, -1, 0], [upper_k_log, 2, 1])
+
             estimated_b = []
 
             for i in np.arange(0, 1, 0.2):
                 for j in np.arange(0, 1, 0.3):
                     init = np.array([i, 1, j])
                     result = minimize(self.fun, init, method='SLSQP', bounds=bounds)
-                    estimated_k.append(result.x[0])
-                    estimated_it.append(result.x[1])
+                    estimated_k.append(math.exp(result.x[0]))
+                    estimated_it.append(math.exp(result.x[1]))
                     estimated_b.append(result.x[2])
                     average_likelihoods.append(-result.fun)
 
@@ -77,12 +88,23 @@ class util_itc:
 
         else: 
 
-            for i in np.arange(0, 1, 0.2):
-                init = np.array([i, 1])
-                result = minimize(self.fun, init, method='SLSQP', bounds=bounds)
-                estimated_k.append(result.x[0])
-                estimated_it.append(result.x[1])
-                average_likelihoods.append(-result.fun)
+            if self.modeltype == 'E':
+                lower_k, upper_k = self.__bounds_e(self.amt1, self.delay1, self.amt2, self.delay2)
+            else:
+                lower_k, upper_k = self.__bounds_h(self.amt1, self.delay1, self.amt2, self.delay2)
+
+            lower_k_log = math.log(lower_k)
+            upper_k_log = math.log(upper_k)
+
+            bounds = Bounds([lower_k_log, -1], [upper_k_log, 2])
+
+            for i in np.arange(0, 2, 0.2):
+                for j in np.arange(0, 3, 0.3):
+                    init = np.array([i, j])
+                    result = minimize(self.fun, init, method='SLSQP', bounds=bounds)
+                    estimated_k.append(math.exp(result.x[0]))
+                    estimated_it.append(math.exp(result.x[1]))
+                    average_likelihoods.append(-result.fun)
 
             best_index = average_likelihoods.index(max(average_likelihoods))
             best_k = estimated_k[best_index]
@@ -96,8 +118,8 @@ class util_itc:
 
     def fun(self, params):
 
-        k = params[0]
-        inverse_temp = params[1]
+        k = math.exp(params[0])
+        inverse_temp = math.exp(params[1])
 
         if self.modeltype == 'E':
             util1 = self.__exponential(self.amt1, k, self.delay1)
@@ -108,7 +130,7 @@ class util_itc:
             util2 = self.__hyperbolic(self.amt2, k, self.delay2)
         
         if self.modeltype == 'GH':
-            s = params[2]
+            s = math.exp(params[2])
             util1 = self.__generalized_hyperbolic(self.amt1, k, self.delay1, s)
             util2 = self.__generalized_hyperbolic(self.amt2, k, self.delay2, s)
 
@@ -120,10 +142,10 @@ class util_itc:
         dv = util2 - util1
         if np.all(dv < 0) or np.all(dv > 0):
             if len(params) == 2:
-                warnings.warn(f'All predicted choices one-sided with parameter: {params[0]}, {params[1]}')
+                warnings.warn(f'All predicted choices one-sided with parameter: {math.exp(params[0])}, {math.exp(params[1])}')
             else:
-                warnings.warn(f'All predicted choices one-sided with parameters: {params[0]}, {params[1]}, {params[2]}')
-        dv_choice = -np.where(self.choice == 0, dv, -dv)
+                warnings.warn(f'All predicted choices one-sided with parameters: {math.exp(params[0])}, {math.exp(params[1])}, {math.exp(params[2])}')
+        dv_choice = -np.where(self.choice == 1, dv, -dv)
         reg = np.divide(dv_choice, inverse_temp)
         logp = np.array([-np.log(1 + np.exp(reg[i])) if reg[i] < 709 else -reg[i] for i in range(len(reg))])
         return -np.average(logp)
@@ -147,6 +169,18 @@ class util_itc:
     @staticmethod
     def __quasi_hyperbolic(a, k, d, b):
         return np.multiply(a, np.multiply(b, np.exp(np.multiply(-k, d))))
+    
+
+    @staticmethod
+    def __bounds_e(amt1, delay1, amt2, delay2):
+        indifference_ks = np.divide(np.subtract(np.log(amt2), np.log(amt1)), np.subtract(delay2, delay1))
+        return min(indifference_ks), max(indifference_ks)
+    
+
+    @staticmethod
+    def __bounds_h(amt1, delay1, amt2, delay2):
+        indifference_ks = np.divide(np.subtract(amt2, amt1), np.subtract(np.multiply(amt1, delay2), np.multiply(amt2, delay1)))
+        return min(indifference_ks), max(indifference_ks)
 
 
     @staticmethod
