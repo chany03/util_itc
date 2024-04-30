@@ -13,10 +13,14 @@ class util_itc:
         if np.all(self.choice == 1) or np.all(self.choice == 0):
             warnings.warn('All input data is one-sided')
 
+        self.params = self.fit()
+
         self.output = []
-        self.output.append(self.fit())
+        self.output.append(self.params)
         self.output.append(self.modeltype)
         self.output.append(len(choice))
+
+        self.fun(self.params, onesided_test=True)
 
     
     def fit(self):
@@ -116,7 +120,7 @@ class util_itc:
         return best_params
 
 
-    def fun(self, params):
+    def fun(self, params, onesided_test=False):
 
         k = math.exp(params[0])
         inverse_temp = math.exp(params[1])
@@ -140,14 +144,19 @@ class util_itc:
             util2 = self.__quasi_hyperbolic(self.amt2, k, self.delay2, b)
 
         dv = util2 - util1
-        if np.all(dv < 0) or np.all(dv > 0):
-            if len(params) == 2:
-                warnings.warn(f'All predicted choices one-sided with parameter: {math.exp(params[0])}, {math.exp(params[1])}')
-            else:
-                warnings.warn(f'All predicted choices one-sided with parameters: {math.exp(params[0])}, {math.exp(params[1])}, {math.exp(params[2])}')
+
+        if onesided_test:
+            if np.all(dv < 0) or np.all(dv > 0):
+                if len(params) == 2:
+                    warnings.warn(f'All predicted choices one-sided with parameter: {math.exp(params[0])}, {math.exp(params[1])}')
+                else:
+                    warnings.warn(f'All predicted choices one-sided with parameters: {math.exp(params[0])}, {math.exp(params[1])}, {math.exp(params[2])}')
+            return None
+        
         dv_choice = -np.where(self.choice == 1, dv, -dv)
         reg = np.divide(dv_choice, inverse_temp)
         logp = np.array([-np.log(1 + np.exp(reg[i])) if reg[i] < 709 else -reg[i] for i in range(len(reg))])
+
         return -np.average(logp)
 
 
@@ -191,81 +200,30 @@ class util_itc:
         assert (type(modeltype) == str and modeltype.upper() in modeltypes), f'{modeltype} should be a string from the list "E" (exponential), "H" (hyperbolic), "GH" (generalized hyperbolic), and "Q" (quasi hyperbolic)'
         modeltype = modeltype.upper()
 
-        if not isinstance(choice, np.ndarray):
-            try:
-                choice = np.array(choice)
-            except Exception as e:
-                raise RuntimeError(f'{choice} should be an array-like; error converting to numpy array: {e}')
+        arraylike_inputs = [choice, amt1, delay1, amt2, delay2]
+        arraylike_labels = ['choice', 'amt1', 'delay1', 'amt2', 'delay2']
+
+        for i in range(len(arraylike_inputs)):
+
+            if not isinstance(arraylike_inputs[i], np.ndarray):
+                try:
+                    arraylike_inputs[i] = np.array(arraylike_inputs[i])
+                except Exception as e:
+                    raise RuntimeError(f'{arraylike_labels[i]} should be an array-like; error converting to numpy array: {e}')
             
-        try:
-            choice = choice.astype(float)
-        except Exception as e:
-            raise RuntimeError(f'{choice} should only contain numerical values, error casting to float: {e}')
-
-        assert (choice.ndim == 1), f'{choice} should be a vector'
-        assert (choice.size > 2), f'{choice} should have at least 3 elements'
-        assert (np.all((choice == 0) | (choice == 1))), f'all elements in {choice} should be 1 or 0'
-
-        if not isinstance(amt1, np.ndarray):
             try:
-                amt1 = np.array(amt1)
+                arraylike_inputs[i] = arraylike_inputs[i].astype(float)
             except Exception as e:
-                raise RuntimeError(f'{amt1} should be an array-like; error converting to numpy array: {e}')
+                raise RuntimeError(f'{arraylike_labels[i]} should only contain numerical values, error casting to float: {e}')
             
-        try:
-            amt1 = amt1.astype(float)
-        except Exception as e:
-            raise RuntimeError(f'{amt1} should only contain numerical values, error casting to float: {e}')
+            assert (type(arraylike_inputs[i]) == np.ndarray and arraylike_inputs[i].ndim == 1), f'{arraylike_labels[i]} should be a vector'
+            assert (arraylike_inputs[i].size > 2), f'{arraylike_labels[i]} should have at least 3 elements'
 
-        assert (type(amt1) == np.ndarray and amt1.ndim == 1), f'{amt1} should be a vector'
-        assert (amt1.size > 2), f'{amt1} should have at least 3 elements'
-        assert (np.all(amt1 > 0)), f'{amt1} should be positive numbers only'
-
-        if not isinstance(delay1, np.ndarray):
-            try:
-                delay1 = np.array(delay1)
-            except Exception as e:
-                raise RuntimeError(f'{delay1} should be an array-like; error converting to numpy array: {e}')
-            
-        try:
-            delay1 = delay1.astype(float)
-        except Exception as e:
-            raise RuntimeError(f'{delay1} should only contain numerical values, error casting to float: {e}')
-
-        assert (type(delay1) == np.ndarray and delay1.ndim == 1), f'{delay1} should be a vector'
-        assert (delay1.size > 2), f'{delay1} should have at least 3 elements'
-        assert (np.all(delay1 >= 0)), f'{delay1} should be positive numbers only'
-
-        if not isinstance(amt2, np.ndarray):
-            try:
-                amt2 = np.array(amt2)
-            except Exception as e:
-                raise RuntimeError(f'{amt2} should be an array-like; error converting to numpy array: {e}')
-            
-        try:
-            amt2 = amt2.astype(float)
-        except Exception as e:
-            raise RuntimeError(f'{amt2} should only contain numerical values, error casting to float: {e}')
-
-        assert (type(amt2) == np.ndarray and amt2.ndim == 1), f'{amt2} should be a vector'
-        assert (amt2.size > 2), f'{amt2} should have at least 3 elements'
-        assert (np.all(amt2 > 0)), f'{amt2} should be positive numbers only'
-
-        if not isinstance(delay2, np.ndarray):
-            try:
-                delay2 = np.array(delay2)
-            except Exception as e:
-                raise RuntimeError(f'{delay2} should be an array-like; error converting to numpy array: {e}')
-            
-        try:
-            delay2 = delay2.astype(float)
-        except Exception as e:
-            raise RuntimeError(f'{delay2} should only contain numerical values, error casting to float: {e}')
-
-        assert (type(delay2) == np.ndarray and delay2.ndim == 1), f'{delay2} should be a vector'
-        assert (delay2.size > 2), f'{delay2} should have at least 3 elements'
-        assert (np.all(delay2 >= 0)), f'{delay2} should be positive numbers only'
+            if i == 0:
+                assert (np.all((arraylike_inputs[i] == 0) | (arraylike_inputs[i] == 1))), f'all elements in {arraylike_labels[i]} should be 1 or 0'
+            else:
+                assert (np.all(arraylike_inputs[i] >= 0)), f'{arraylike_labels[i]} should be nonnegative numbers only'
 
         assert (choice.size == amt1.size == delay1.size == amt2.size == delay2.size), 'all vectors should have equal size'
 
-        return modeltype, choice, amt1, delay1, amt2, delay2
+        return modeltype, arraylike_inputs[0], arraylike_inputs[1], arraylike_inputs[2], arraylike_inputs[3], arraylike_inputs[4]
