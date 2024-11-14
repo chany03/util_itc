@@ -4,15 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "util_itc"
-version = "0.1.1"
+version = "0.1.10"
 dependencies = [
   "numpy>=1.26.4",
   "scipy>=1.12.0"
 ]
 authors = [
-  { name="Chanyoung Chung", email="chany7487@gmail.com" },
+  { name="Chanyoung Chung", email="chanyoungchung@berkeley.edu" },
 ]
-description = "A small example package"
+description = "A package for fitting intertemporal choice data to models"
 readme = "README.md"
 license = {file = "LICENSE.txt"}
 requires-python = ">=3.8"
