@@ -2,8 +2,8 @@ A package for fitting intertemporal choice data to models.
 
 Available models for fitting:
 * Exponential: $U=A·exp(−kD)$
-* Hyperbolic: $U=A·(1+kD)−1$
-* Generalized Hyperbolic: $U=A·(1+kD)−s$
+* Hyperbolic: $U=A·(1+kD)^{−1}$
+* Generalized Hyperbolic: $U=A·(1+kD)^{−s}$
 * Quasi-hyperbolic: $U=A·βexp(−kD)$
 
 The constructor takes a model type and data (choices, payoffs, and delays) for two options and instantiates a util-itc object, fitting the data during instantiation. 
