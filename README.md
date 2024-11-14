@@ -37,6 +37,13 @@ where y will store the fitted results in the following format:
 
 For queries regarding package maintenance, please contact chanyoungchung@berkeley.edu
 
+To view additional information about the class or functions, use python's help function (with package installed):
+```
+help(util_itc)
+help(util_itc.fun)
+```
+To exit the help window in terminal, press q.
+
 Help function documentation:
 
 ```
