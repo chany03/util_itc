@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: util_itc
-Version: 0.1.10
+Version: 0.1.11
 Summary: A package for fitting intertemporal choice data to models
 Author-email: Chanyoung Chung <chanyoungchung@berkeley.edu>
 Project-URL: Homepage, https://github.com/chany03/util_itc
@@ -16,10 +16,10 @@ Requires-Dist: scipy>=1.12.0
 A package for fitting intertemporal choice data to models. 
 
 Available models for fitting:
-Exponential: $U=A·exp(−kD)$
-Hyperbolic: $U=A·(1+kD)−1$
-Generalized Hyperbolic: $U=A·(1+kD)−s$
-Quasi-hyperbolic: $U=A·βexp(−kD)$
+* Exponential: $U=A·exp(−kD)$
+* Hyperbolic: $U=A·(1+kD)−1$
+* Generalized Hyperbolic: $U=A·(1+kD)−s$
+* Quasi-hyperbolic: $U=A·βexp(−kD)$
 
 The constructor takes a model type and data (choices, payoffs, and delays) for two options and instantiates a util-itc object, fitting the data during instantiation. 
 
@@ -29,23 +29,35 @@ Warnings will be issued if all choices in the input data are one-sided (all 0 or
 
 Dependencies: numpy version >= 1.26.4, scipy version >= 1.12.0
 
-To import, use the following import statement:
+To install using pip and import the package, copy the following code into your terminal:
+```
+pip install util-itc
 from util_itc import util_itc
+```
 
 To fit after importing, construct a util_itc object for each set of data you would like to fit, in the following format:
+```
 x = util_itc(modeltype, choice, amt1, delay1, amt2, delay2)
+```
 where x is the variable that results will be stored in.
 Modeltype should be a 1-length string ('E', 'H', 'GH', or 'Q') that will determine the model used for fitting. All other parameters should be arraylike objects (numpy arrays, lists, etc.).
 
 To obtain fitted parameters, view the output instance variable:
+```
 y = x.output
+print(y)
+```
 where y will store the fitted results in the following format:
 [[k, inverse temperature, optional parameter s/b], 'modeltype', number of data points]
 
-To view fitted parameters, print the output variable:
-print(y)
-
 For queries regarding package maintenance, please contact chanyoungchung@berkeley.edu
+
+To view additional information about the class or functions, use python's help function (with package installed):
+```
+help(util_itc)
+help(util_itc.fun)
+```
+To exit the help window in terminal, press q.
 
 Help function documentation:
 
