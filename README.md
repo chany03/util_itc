@@ -14,21 +14,26 @@ Warnings will be issued if all choices in the input data are one-sided (all 0 or
 
 Dependencies: numpy version >= 1.26.4, scipy version >= 1.12.0
 
-To import, use the following import statement:
+To install using pip and import the package, copy the following code into your terminal:
+```
+pip install util-itc
 from util_itc import util_itc
+```
 
 To fit after importing, construct a util_itc object for each set of data you would like to fit, in the following format:
+```
 x = util_itc(modeltype, choice, amt1, delay1, amt2, delay2)
+```
 where x is the variable that results will be stored in.
 Modeltype should be a 1-length string ('E', 'H', 'GH', or 'Q') that will determine the model used for fitting. All other parameters should be arraylike objects (numpy arrays, lists, etc.).
 
 To obtain fitted parameters, view the output instance variable:
+```
 y = x.output
+print(y)
+```
 where y will store the fitted results in the following format:
 [[k, inverse temperature, optional parameter s/b], 'modeltype', number of data points]
-
-To view fitted parameters, print the output variable:
-print(y)
 
 For queries regarding package maintenance, please contact chanyoungchung@berkeley.edu
 
