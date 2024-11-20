@@ -35,6 +35,13 @@ print(y)
 where y will store the fitted results in the following format:
 [[k, inverse temperature, optional parameter s/b], 'modeltype', number of data points]
 
+Example of use:
+```
+>>> example = util_itc("E", [0, 1, 0], [9, 9, 9], [1, 4, 3], [1, 7, 4], [4, 0, 0])
+>>> example.output
+[[0.1428602660107752, 0.36787944117144233], 'E', 3]
+```
+
 For queries regarding package maintenance, please contact chanyoungchung@berkeley.edu
 
 To view additional information about the class or functions, use python's help function (with package installed):

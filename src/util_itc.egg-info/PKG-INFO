@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: util_itc
-Version: 0.1.12
+Version: 0.1.13
 Summary: A package for fitting intertemporal choice data to models
 Author-email: Chanyoung Chung <chanyoungchung@berkeley.edu>
 Project-URL: Homepage, https://github.com/chany03/util_itc
@@ -49,6 +49,13 @@ print(y)
 ```
 where y will store the fitted results in the following format:
 [[k, inverse temperature, optional parameter s/b], 'modeltype', number of data points]
+
+Example of use:
+```
+>>> example = util_itc("E", [0, 1, 0], [9, 9, 9], [1, 4, 3], [1, 7, 4], [4, 0, 0])
+>>> example.output
+[[0.1428602660107752, 0.36787944117144233], 'E', 3]
+```
 
 For queries regarding package maintenance, please contact chanyoungchung@berkeley.edu
 
